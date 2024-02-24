@@ -1,0 +1,110 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: specter1591-api
+  name: specter1591-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: specter1591-api
+  template:
+    metadata:
+      labels:
+        app: specter1591-api
+    spec:
+      imagePullSecrets:
+      - name: registry-credentials
+      containers:
+      - image: registry.specter1591.com/specter1591/api/master:latest
+        name: specter1591-api
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 80
+          name: http
+        env:
+        - name: APP_PORT
+          value: "80"
+        - name: APP_KEY
+          value: ""
+        - name: DB_PASSWORD
+          value: ""
+        resources:
+          limits:
+            cpu: "1.0" # 1 Core
+            memory: "2Gi" # 2 GB
+          requests:
+            memory: "0.5Gi" # 0.5 GB
+            cpu: "1.0" # 1 Core
+      nodeSelector:
+        kubernetes.io/arch: amd64
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: api-redis
+  name: api-redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-redis
+  template:
+    metadata:
+      labels:
+        app: api-redis
+    spec:
+      containers:
+      - image: redis:alpine
+        name: api-redis
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 6379
+        env:
+        - name: REDIS_PASSWORD
+          value: ""
+        volumeMounts:
+        - name: redis-data
+          mountPath: /data
+      volumes:
+      - name: redis-data
+        emptyDir:
+          sizeLimit: 500Mi
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgresql-db
+  namespace: 1591-api
+spec:
+  serviceName: postgresql-db-service
+  selector:
+    matchLabels:
+      app: postgresql-db
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: postgresql-db
+    spec:
+      containers:
+      - name: postgresql-db
+        image: postgres:latest
+        volumeMounts:
+        - name: postgresql-db-disk
+          mountPath: /data
+        env:
+        - name: POSTGRES_PASSWORD
+          value: ""
+        - name: PGDATA
+          value: /data/pgdata
+  volumeClaimTemplates:
+  - metadata:
+      name: postgresql-db-disk
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 25Gi

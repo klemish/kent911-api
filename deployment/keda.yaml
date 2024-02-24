@@ -1,0 +1,20 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: specter1591-api
+  namespace: specter1591-api
+spec:
+  cooldownPeriod: 30
+  maxReplicaCount: 10
+  minReplicaCount: 2
+  pollingInterval: 30
+  scaleTargetRef:
+    name: specter1591-api
+  triggers:
+    - type: redis
+      metadata:
+        address: api-redis.specter1591-api.svc.cluster.local:6379
+        # usernameFromEnv: REDIS_USERNAME
+        # passwordFromEnv: REDIS_PASSWORD
+        listName: default
+        listLength: "24"

@@ -1,0 +1,18 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: specter1591-api
+  namespace: specter1591-api
+
+spec:
+  rules:
+    - host: api.specter1591.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: specter1591-api-svc
+                port:
+                  number: 80
