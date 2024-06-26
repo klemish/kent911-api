@@ -1,8 +1,8 @@
 # For more information: https://laravel.com/docs/sail
 version: '3'
 services:
-    1591api:
-        container_name: api1591
+    laravel.test:
+        container_name: laravel.test
         build:
             context: ./docker/8.2
             dockerfile: Dockerfile
